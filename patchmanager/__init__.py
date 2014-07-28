@@ -1,32 +1,34 @@
-commands = [
-        'init',
-        'status',
-        'add',
-        'list',
-        'swap',
-        'help'
-    ]
+import init, status, ignore, list as p_list, use, snap, help as p_help
 
-import sys, importlib
+commands = {
+        'init': init,
+        'status': status,
+        'ignore': ignore,
+        'list': p_list,
+        'use': use,
+        'snap': snap,
+        'help': p_help
+        }
 
-from . import manager
+import sys
+import manager
 
 def main():
     if len(sys.argv) < 2:
-        cmd('help')
+        return cmd('help')
     elif sys.argv[1] in commands:
-        cmd(sys.argv[1], sys.argv[2:])
+        return cmd(sys.argv[1], sys.argv[2:])
     elif len(sys.argv) < 3:
-        cmd('help')
+        return cmd('help')
     elif sys.argv[2] in commands:
         repo = manager.resolve(sys.argv[1])
-        cmd(sys.argv[2], sys.argv[3:], repo)
+        return cmd(sys.argv[2], sys.argv[3:], repo)
     else:
-        cmd('help')
+        return cmd('help')
 
 def cmd(name, args=[], repo=None):
-    p_cmd = importlib.import_module(name)
-    p_cmd.main(args, repo)
+    p_cmd = commands[name]
+    return p_cmd.main(args, repo)
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
