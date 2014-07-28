@@ -1,5 +1,30 @@
 patman will manage your patches.
 
-patman works with an interface similar to git.
+patman works with an interface similar to git. Start projects, then make 
+snapshots when you decide you're at a place you might want to get back to 
+later. There's automatically an "original" snapshot made for you at the 
+beginning, so that's nice.
 
-I'll write more here when there's actually a tool to document.
+Ideally, it would be able to stop and start services as it swapped patches, 
+but that's for later.
+
+Basic usage:
+
+$ ls
+binary  useful_data.txt
+$ patman init project_name binary
+$ patman status
+Using snapshot original
+$ vim useful_data.txt
+$ patman status
+Using snapshot original, with modifications:
+useful_data.txt: Mod time differs
+useful_data.txt: Size differs
+$ patman snap datamod
+$ patman status
+Using snapshot datamod
+$ patman use original
+$ patman list
+            original * 2014-07-28 16:10:30.155030
+              modded   2014-07-28 16:19:55.207026
+$ 

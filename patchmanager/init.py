@@ -5,6 +5,7 @@ def main(args, repo):
     if repo is not None:
         import help as p_help
         p_help.main(['init'])
+        repo.done()
         return 1
 
     try:
