@@ -26,5 +26,5 @@ Using snapshot datamod
 $ patman use original
 $ patman list
             original * 2014-07-28 16:10:30.155030
-              modded   2014-07-28 16:19:55.207026
+             datamod   2014-07-28 16:19:55.207026
 $ 
