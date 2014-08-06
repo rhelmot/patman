@@ -5,7 +5,6 @@ def main(args, repo):
     if repo is not None:
         import help as p_help
         p_help.main(['init'])
-        repo.done()
         return 1
 
     try:
@@ -15,19 +14,22 @@ def main(args, repo):
     except Exception:
         pass
 
+    if not any(not x.startswith('.') for x in os.listdir('.')):
+        raise Exception('Not initializing empty directory!')
+
     ppath = os.environ['PWD']
     phash = manager.shash(ppath)
     if len(args) < 1:
         args.append(raw_input("Give a name for this project: "))
-    if len(args) < 2:
-        args.append(raw_input("Give the name of the executable for this project: "))
+    #if len(args) < 2:
+    #    args.append(raw_input("Give the name of the executable for this project: "))
     # TODO: validate names
-    try:
-        open(args[1])
-    except:
-        print "Executable file doesn't exist!"
-        print 'it was "%s"' % args[1]
-        return 1
+    #try:
+    #    open(args[1])
+    #except:
+    #    print "Executable file doesn't exist!"
+    #    print 'it was "%s"' % args[1]
+    #    return 1
 
     cfgdir = os.path.join(manager.PATH, phash)
     os.mkdir(cfgdir)
@@ -36,8 +38,8 @@ def main(args, repo):
     os.mkdir(os.path.join(cfgdir, 'config'))
     open(os.path.join(cfgdir, 'config/destination'), 'w').write(ppath)
     repo = manager.Project(cfgdir)
-    repo.set_executable(args[1])
-    repo.set_ignores([])
-    repo.snapshot('original')
-    repo.done()
-    return 0
+    with repo.lock:
+        #repo.set_executable(args[1])
+        repo.set_ignores([])
+        repo.snapshot('original')
+        return 0

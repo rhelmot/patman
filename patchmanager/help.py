@@ -1,7 +1,4 @@
 def main(args, repo):
-    if repo is not None:
-        repo.done()
-
     if len(args) == 0:
         args = ['']
     elif args[0] not in helps:

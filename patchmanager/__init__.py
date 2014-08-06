@@ -1,4 +1,4 @@
-import init, status, ignore, list as p_list, use, snap, help as p_help
+import init, status, ignore, list as p_list, use, snap, help as p_help, delete
 
 commands = {
         'init': init,
@@ -7,7 +7,8 @@ commands = {
         'list': p_list,
         'use': use,
         'snap': snap,
-        'help': p_help
+        'help': p_help,
+        'delete': delete
         }
 
 import sys

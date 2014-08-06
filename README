@@ -5,14 +5,12 @@ snapshots when you decide you're at a place you might want to get back to
 later. There's automatically an "original" snapshot made for you at the 
 beginning, so that's nice.
 
-Ideally, it would be able to stop and start services as it swapped patches, 
-but that's for later.
 
 Basic usage:
 
 $ ls
 binary  useful_data.txt
-$ patman init project_name binary
+$ patman init project_name
 $ patman status
 Using snapshot original
 $ vim useful_data.txt
@@ -25,6 +23,13 @@ $ patman status
 Using snapshot datamod
 $ patman use original
 $ patman list
+            original * 2014-07-28 16:10:30.155030
+             datamod   2014-07-28 16:19:55.207026
+$ cd some_subfolder
+$ patman status  # Works from within subfolders
+Using snapshot original
+$ cd ../..
+$ patman project_name list  # Works from anywhere on the filesystem if you specify the project name
             original * 2014-07-28 16:10:30.155030
              datamod   2014-07-28 16:19:55.207026
 $ 

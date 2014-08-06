@@ -33,15 +33,21 @@ class Project:
     def __init__(self, path):
         self.cfgdir = path
         self.lock = FileLock(os.path.join(path, 'lock'))
-        self.lock.acquire()
-        self.cfg_executable = os.path.join(path, 'config/executable')
+        #self.cfg_executable = os.path.join(path, 'config/executable')
         self.cfg_ignores = os.path.join(path, 'config/ignores')
         self.cfg_cursnap = os.path.join(path, 'config/current_snapshot')
         self.client_dest = open(os.path.join(path, 'config/destination')).read()
 
-    def done(self):
-        self.lock.release()
-        
+    def delete(self):
+        folder = self.cfgdir
+        try:
+            folder = os.readlink(self.cfgdir)
+            os.remove(self.cfgdir)
+        except OSError:
+            pass
+        Popen(['rm', '-rf', folder], stdout=PIPE) # pipe should make it synchronous
+        clean_symlinks(PATH)
+
     def snapshot(self, name):
         snapshot_path = os.path.join(self.cfgdir, 'snapshots', name)
         os.mkdir(snapshot_path)
@@ -50,7 +56,7 @@ class Project:
             os.path.join(snapshot_path, 'archive.tar.gz'),
             self.cfg_ignores,
             self.client_dest))
-        Popen(['cp', self.cfg_executable, self.cfg_ignores, snapshot_path])
+        Popen(['cp', self.cfg_ignores, snapshot_path])
         self.set_current_snapshot(name)
 
     def restore(self, name):
@@ -58,16 +64,15 @@ class Project:
         Popen(['tar', '-xf', os.path.join(snapshot_path, 'archive.tar.gz'),
             '-C', self.client_dest])
         Popen(['cp', 
-            os.path.join(snapshot_path, 'executable'),
             os.path.join(snapshot_path, 'ignores'),
             self.cfgdir])
         self.set_current_snapshot(name)
 
-    def set_executable(self, name):
-        open(self.cfg_executable, 'w').write(name)
+    #def set_executable(self, name):
+    #    open(self.cfg_executable, 'w').write(name)
 
-    def get_executable(self):
-        return open(self.cfg_executable).read()
+    #def get_executable(self):
+    #    return open(self.cfg_executable).read()
 
     def set_ignores(self, names):
         open(self.cfg_ignores, 'w').write('\n'.join(names))
@@ -94,4 +99,33 @@ class Project:
             '-X', os.path.join(self.cfgdir, 'snapshots', name, 'ignores'),
             '-C', self.client_dest], 
             stdout=PIPE)
-        return res.stdout.read().strip().split('\n')
+        out = res.stdout.read().strip().split('\n')
+        res2 = Popen(['tar', '-tf', os.path.join(self.cfgdir, 'snapshots', name, 'archive.tar.gz')],
+                stdout=PIPE)
+        contents = res2.stdout.read().strip().split('\n')
+        news = get_new_files(self.client_dest, '', contents)
+        for new_one in news:
+            out.append('%s: new file' % new_one)
+        return out
+
+def get_new_files(root, extension, oldfiles):
+    out = []
+    for filename in os.listdir(os.path.join(root, extension)):
+        if filename.startswith('.'):
+            continue
+        if extension + filename in oldfiles:
+            continue
+        if extension + filename + '/' in oldfiles:
+            out += get_new_files(root, extension + filename + '/', oldfiles)
+            continue
+        if os.path.isdir(os.path.join(root, extension, filename)):
+            filename += '/'
+        out.append(extension + filename)
+    return out
+
+def clean_symlinks(path):
+    for name in os.listdir(path):
+        try:
+            os.stat(os.path.join(path, name))
+        except OSError as e:
+            os.remove(os.path.join(path, name))
